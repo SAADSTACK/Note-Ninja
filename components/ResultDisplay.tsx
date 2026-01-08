@@ -1,13 +1,38 @@
 
 import React from 'react';
 
+declare const window: any;
+
 interface ResultDisplayProps {
   markdown: string;
 }
 
 export const ResultDisplay: React.FC<ResultDisplayProps> = ({ markdown }) => {
-  // Simple parser to make it look nicer
+  // Simple parser to map markdown sections to styled blocks
   const sections = markdown.split(/(?=###|##|# )/g);
+
+  const handleDownloadPDF = () => {
+    const element = document.getElementById('transcription-report');
+    if (!element) return;
+
+    // Advanced PDF configuration for linguistic reports
+    const opt = {
+      margin: [15, 15, 15, 15],
+      filename: `Note-Ninja-Report-${new Date().toISOString().slice(0, 10)}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { 
+        scale: 2, 
+        useCORS: true,
+        letterRendering: true,
+        logging: false
+      },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+    };
+
+    // Execute elite export protocol
+    window.html2pdf().set(opt).from(element).save();
+  };
 
   const renderTranscriptContent = (content: string) => {
     const lines = content.split('\n');
@@ -34,11 +59,10 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ markdown }) => {
     if (currentBlock) blocks.push(currentBlock);
 
     return blocks.map((block, bIdx) => (
-      <div key={bIdx} className="flex gap-6 group mb-4">
+      <div key={bIdx} className="flex gap-6 group mb-4 break-inside-avoid">
         <span className="text-indigo-600 font-black shrink-0 tabular-nums h-fit py-1 px-3 bg-indigo-50 rounded-lg text-sm border border-indigo-100/50">{block.timestamp}</span>
         <div className="border-l-2 border-slate-100 pl-6 group-hover:border-indigo-400 transition-colors space-y-2">
           {block.contentLines.map((l, lIdx) => {
-            // Style translation lines slightly differently if they start with "Translation:"
             const isTranslation = l.toLowerCase().startsWith('translation:');
             return (
               <p key={lIdx} className={`${isTranslation ? 'italic text-slate-500 font-medium text-[15px] bg-slate-50/50 p-2 rounded-lg' : 'text-slate-800 font-medium leading-relaxed'}`}>
@@ -53,18 +77,30 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ markdown }) => {
 
   return (
     <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {/* Accuracy Verification Header (Light Mode) */}
-      <div className="flex items-center gap-5 bg-indigo-50 border border-indigo-100/50 p-5 rounded-3xl no-print shadow-sm">
-        <div className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-100">
-          <i className="fas fa-shield-check text-xl"></i>
+      {/* Accuracy Verification Header & Export Trigger */}
+      <div className="flex flex-col md:flex-row items-center gap-5 bg-indigo-50 border border-indigo-100/50 p-5 rounded-3xl no-print shadow-sm">
+        <div className="flex items-center gap-5 flex-1">
+          <div className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-100">
+            <i className="fas fa-shield-check text-xl"></i>
+          </div>
+          <div>
+            <h4 className="font-black text-slate-900 tracking-tight">Zero-Loss Verification Engine</h4>
+            <p className="text-xs text-slate-500 font-bold">Linguistic integrity confirmed. 100% transcript fidelity against raw feed.</p>
+          </div>
         </div>
-        <div>
-          <h4 className="font-black text-slate-900 tracking-tight">Zero-Loss Verification Engine</h4>
-          <p className="text-xs text-slate-500 font-bold">Linguistic integrity confirmed. 100% transcript fidelity against raw feed.</p>
-        </div>
-        <div className="ml-auto flex flex-col items-end">
-          <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest">Status</span>
-          <span className="text-[11px] font-black text-emerald-600 bg-white px-3 py-1 rounded-full border border-emerald-100 shadow-sm">CERTIFIED</span>
+        
+        <div className="flex items-center gap-4 w-full md:w-auto">
+          <button 
+            onClick={handleDownloadPDF}
+            className="flex-1 md:flex-none flex items-center justify-center gap-3 bg-white border border-indigo-200 text-indigo-600 font-black text-xs uppercase tracking-widest px-6 py-4 rounded-2xl hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all shadow-sm active:scale-95"
+          >
+            <i className="fas fa-file-pdf"></i>
+            Export PDF Report
+          </button>
+          <div className="hidden lg:flex flex-col items-end">
+            <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest">Status</span>
+            <span className="text-[11px] font-black text-emerald-600 bg-white px-3 py-1 rounded-full border border-emerald-100 shadow-sm">CERTIFIED</span>
+          </div>
         </div>
       </div>
 
@@ -75,11 +111,10 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ markdown }) => {
           const title = section.match(/^#+\s*(.*)/)?.[1] || "Analysis Section";
           const content = section.replace(/^#+.*\n/, '').trim();
 
-          // Highlight the transcript section differently
           const isTranscript = title.toLowerCase().includes('transcript');
 
           return (
-            <div key={idx} className={`bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-8 md:p-12 hover:shadow-md transition-shadow ${isTranscript ? 'ring-1 ring-indigo-50/50 bg-white/50' : ''}`}>
+            <div key={idx} className={`bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-8 md:p-12 hover:shadow-md transition-shadow break-inside-avoid ${isTranscript ? 'ring-1 ring-indigo-50/50 bg-white/50' : ''}`}>
               <div className="flex items-center justify-between mb-10">
                 <h3 className="text-3xl font-black text-slate-900 tracking-tighter flex items-center gap-4">
                   <span className="w-2.5 h-10 gradient-bg rounded-full shadow-sm"></span>
