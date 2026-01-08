@@ -1,0 +1,7 @@
+{
+  "name": "Note Ninja",
+  "description": "A high-fidelity transcription and linguistic analysis engine that converts raw speech into structured, actionable intelligence using a Zero-Loss philosophy.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
