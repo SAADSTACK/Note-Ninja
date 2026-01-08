@@ -33,8 +33,14 @@ export class TranscriptionService {
   constructor() {}
 
   async analyzeAudio(audioBase64: string, mimeType: string, mode: TranscriptionMode) {
-    // Create a new GoogleGenAI instance right before making an API call to ensure it uses the latest session key
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    // The API_KEY is injected at build time by Vite from the config
+    const apiKey = process.env.API_KEY;
+    
+    if (!apiKey) {
+      throw new Error("Linguistic Engine failure: API Key not initialized in environment.");
+    }
+
+    const ai = new GoogleGenAI({ apiKey });
     
     const prompt = `Please transcribe and analyze the attached audio file. 
     Mode: ${mode === TranscriptionMode.VERBATIM ? 'Full Verbatim (include fillers)' : 'Clean Read (remove stutters, preserve meaning)'}.
@@ -43,7 +49,7 @@ export class TranscriptionService {
     IMPORTANT TRANSLATION RULE: If any non-English speech is detected, provide the original transcription and the English translation on DIFFERENT lines. Do not combine them into one line.`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3-pro-preview', // Upgraded to Pro for elite reasoning and technical jargon fidelity
+      model: 'gemini-3-pro-preview',
       contents: {
         parts: [
           { inlineData: { data: audioBase64, mimeType } },
